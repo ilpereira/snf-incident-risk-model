@@ -1,0 +1,39 @@
+# Coverage
+.coverage
+htmlcov/
+
+# Zone.Identifier (Windows/WSL download metadata)
+*.identifier
+*:Zone.Identifier
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Testing
+.pytest_cache/
+
+# OS
+.DS_Store
+
+# IDEs
+.vscode/
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
