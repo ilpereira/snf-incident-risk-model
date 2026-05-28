@@ -283,6 +283,12 @@ Cross-validation groups on `facility_id` — all residents from a held-out set o
 
 ```
 .
+├── eda.ipynb               # Exploratory data analysis: distributions, class imbalance,
+│                              # missingness, vital signs, ADL/GG profiles, comorbidities,
+│                              # medications, document tags, temporal patterns, and
+│                              # facility-level heterogeneity across all 17 source tables.
+│                              # Run this before the pipeline to understand the data.
+│
 ├── config.py               # All constants: paths, horizons, XGBoost params,
 │                              # calibration config, tier percentiles, exclusions,
 │                              # and DASHBOARD_ACTIVE_TARGETS (wound suppressed)
