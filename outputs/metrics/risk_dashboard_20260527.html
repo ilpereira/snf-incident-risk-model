@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SNF Risk Dashboard — 2026-05-27</title>
+<style>
+  body  { font-family:-apple-system,Arial,sans-serif;margin:0;padding:24px;background:#f5f5f5 }
+  h1   { color:#2c3e50;font-size:22px;margin-bottom:4px }
+  .sub { color:#7f8c8d;font-size:13px;margin-bottom:8px }
+  .note { background:#fff8e1;border-left:3px solid #f39c12;padding:8px 12px;
+           font-size:12px;color:#7f6d3a;margin-bottom:20px;border-radius:0 4px 4px 0 }
+  .cards { display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap }
+  .card  { background:white;border-radius:8px;padding:16px 20px;min-width:140px;border:1px solid #e8e8e8 }
+  .card .label { font-size:12px;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px }
+  .card .value { font-size:28px;font-weight:600;margin-top:4px }
+  .card.red   .value { color:#e74c3c }
+  .card.amber .value { color:#f39c12 }
+  .card.green .value { color:#27ae60 }
+  .card.blue  .value { color:#2980b9;font-size:20px }
+  table { width:100%;border-collapse:collapse;background:white;border-radius:8px;
+           overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1) }
+  thead { background:#2c3e50;color:white }
+  th    { padding:10px 12px;text-align:left;font-size:12px;font-weight:500 }
+  th.muted { color:#94a3b8 }
+  td    { padding:9px 12px;font-size:13px;border-bottom:1px solid #f0f0f0 }
+  tr:last-child td { border-bottom:none }
+  tr:hover td { background:#fafafa }
+</style>
+</head>
+<body>
+<h1>&#127973; Resident Risk Dashboard</h1>
+<p class="sub">Score date: 2026-05-27 &nbsp;|&nbsp; Model: XGBoost
+  &nbsp;|&nbsp; Fall (30d) = 30d · Return-to-hospital (60d) = 60d
+  &nbsp;|&nbsp; Top 100 of 612 residents</p>
+<p class="note">
+  Tier and expected cost are based on <strong>fall</strong> and <strong>RTH</strong> only.
+  Wound (60d) is shown for monitoring but is suppressed from triage
+  (Brier Skill Score &minus;0.019 &mdash; no-skill predictor).
+  Tiers are percentile-ranked on combined expected cost: top&nbsp;25%&nbsp;=&nbsp;High,
+  next&nbsp;25%&nbsp;=&nbsp;Medium, bottom&nbsp;50%&nbsp;=&nbsp;Low.
+</p>
+<div class="cards">
+  <div class="card red">  <div class="label">High risk</div>  <div class="value">151</div></div>
+  <div class="card amber"><div class="label">Medium risk</div><div class="value">53</div></div>
+  <div class="card green"><div class="label">Low risk</div>   <div class="value">408</div></div>
+  <div class="card blue"> <div class="label">Expected cost (fall + RTH)</div>
+                          <div class="value">$297,746</div></div>
+</div>
+<table>
+<thead><tr>
+  <th>#</th><th>Resident</th><th>Facility</th><th>Age</th>
+  <th>Tier</th><th>Fall (30d)</th><th>RTH (60d)</th>
+  <th class="muted">Wound (60d) &#9888;</th>
+  <th>Exp. cost</th><th>Top drivers (dominant model)</th>
+</tr></thead>
+<tbody>
+        <tr>
+          <td style="text-align:center">1</td>
+          <td><code style="font-size:11px">05aea9e9</code></td>
+          <td><code style="font-size:11px">03be8a7d</code></td>
+          <td style="text-align:center">70.0</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">8.83%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,906</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ dx sepsis · ↓ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">2</td>
+          <td><code style="font-size:11px">cab571b9</code></td>
+          <td><code style="font-size:11px">3b1cbe66</code></td>
+          <td style="text-align:center">69.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.62%</td>
+          <td style="text-align:center">8.83%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,822</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ dx pressure ulcer · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">3</td>
+          <td><code style="font-size:11px">c0a1ee61</code></td>
+          <td><code style="font-size:11px">5141e8c0</code></td>
+          <td style="text-align:center">94.9</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.63%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$1,375</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ facility id enc · ↓ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">4</td>
+          <td><code style="font-size:11px">ae9d0421</code></td>
+          <td><code style="font-size:11px">eda6629e</code></td>
+          <td style="text-align:center">79.0</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.04%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$1,355</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ dx pvd</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">5</td>
+          <td><code style="font-size:11px">e9fe74d1</code></td>
+          <td><code style="font-size:11px">cef3d6ef</code></td>
+          <td style="text-align:center">77.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.04%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">32.43%</td>
+          <td style="text-align:right;font-weight:bold">$1,355</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">6</td>
+          <td><code style="font-size:11px">708b1b75</code></td>
+          <td><code style="font-size:11px">95a860f1</code></td>
+          <td style="text-align:center">72.0</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ vital o2 mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">7</td>
+          <td><code style="font-size:11px">ea98c913</code></td>
+          <td><code style="font-size:11px">722ad2f4</code></td>
+          <td style="text-align:center">79.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">8</td>
+          <td><code style="font-size:11px">2d22c30e</code></td>
+          <td><code style="font-size:11px">9779e9f8</code></td>
+          <td style="text-align:center">80.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">9</td>
+          <td><code style="font-size:11px">8df81e0a</code></td>
+          <td><code style="font-size:11px">7a8607bc</code></td>
+          <td style="text-align:center">78.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">4.75%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">10</td>
+          <td><code style="font-size:11px">280c0db1</code></td>
+          <td><code style="font-size:11px">38fe8e1a</code></td>
+          <td style="text-align:center">73.0</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">4.75%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">11</td>
+          <td><code style="font-size:11px">e636353e</code></td>
+          <td><code style="font-size:11px">3b1cbe66</code></td>
+          <td style="text-align:center">76.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">12</td>
+          <td><code style="font-size:11px">6d7beb3f</code></td>
+          <td><code style="font-size:11px">95a860f1</code></td>
+          <td style="text-align:center">65.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ dx sepsis · ↓ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">13</td>
+          <td><code style="font-size:11px">daaa44d0</code></td>
+          <td><code style="font-size:11px">4166a79c</code></td>
+          <td style="text-align:center">79.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">14</td>
+          <td><code style="font-size:11px">1738c8a5</code></td>
+          <td><code style="font-size:11px">7f6c0437</code></td>
+          <td style="text-align:center">66.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ charlson score · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">15</td>
+          <td><code style="font-size:11px">2590f124</code></td>
+          <td><code style="font-size:11px">055d33c9</code></td>
+          <td style="text-align:center">74.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">4.75%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↑ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">16</td>
+          <td><code style="font-size:11px">007e9403</code></td>
+          <td><code style="font-size:11px">1c35a615</code></td>
+          <td style="text-align:center">78.8</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">10.38%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ dx sepsis · ↓ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">17</td>
+          <td><code style="font-size:11px">709dd52e</code></td>
+          <td><code style="font-size:11px">dc803ba5</code></td>
+          <td style="text-align:center">80.1</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ age at obs · ↑ n comorbidities · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">18</td>
+          <td><code style="font-size:11px">81f50c70</code></td>
+          <td><code style="font-size:11px">973e4c21</code></td>
+          <td style="text-align:center">73.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">19</td>
+          <td><code style="font-size:11px">111b0a63</code></td>
+          <td><code style="font-size:11px">3b1cbe66</code></td>
+          <td style="text-align:center">63.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ dx pressure ulcer · ↑ dx hemi paraplegia</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">20</td>
+          <td><code style="font-size:11px">4e516f85</code></td>
+          <td><code style="font-size:11px">fe2398e8</code></td>
+          <td style="text-align:center">65.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">21</td>
+          <td><code style="font-size:11px">deb240a2</code></td>
+          <td><code style="font-size:11px">fe2398e8</code></td>
+          <td style="text-align:center">79.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">32.43%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">22</td>
+          <td><code style="font-size:11px">39864e1f</code></td>
+          <td><code style="font-size:11px">3b1cbe66</code></td>
+          <td style="text-align:center">63.0</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↑ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">23</td>
+          <td><code style="font-size:11px">45fc9862</code></td>
+          <td><code style="font-size:11px">2c11f747</code></td>
+          <td style="text-align:center">74.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ vital o2 mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">24</td>
+          <td><code style="font-size:11px">4115cbc8</code></td>
+          <td><code style="font-size:11px">8aedc7ae</code></td>
+          <td style="text-align:center">68.8</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">10.60%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ dx pvd · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">25</td>
+          <td><code style="font-size:11px">5c71d759</code></td>
+          <td><code style="font-size:11px">c4340ab5</code></td>
+          <td style="text-align:center">78.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">10.38%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ charlson score · ↓ dx pvd</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">26</td>
+          <td><code style="font-size:11px">cb6b4ca4</code></td>
+          <td><code style="font-size:11px">cef3d6ef</code></td>
+          <td style="text-align:center">63.8</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">4.75%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">27</td>
+          <td><code style="font-size:11px">c40c75fe</code></td>
+          <td><code style="font-size:11px">838a03d8</code></td>
+          <td style="text-align:center">68.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">28</td>
+          <td><code style="font-size:11px">b8892251</code></td>
+          <td><code style="font-size:11px">3b1cbe66</code></td>
+          <td style="text-align:center">73.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">4.75%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">29</td>
+          <td><code style="font-size:11px">bbed074c</code></td>
+          <td><code style="font-size:11px">838a03d8</code></td>
+          <td style="text-align:center">53.0</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ prior rth days since last</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">30</td>
+          <td><code style="font-size:11px">18aa804f</code></td>
+          <td><code style="font-size:11px">7883b4fc</code></td>
+          <td style="text-align:center">70.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ facility id enc · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">31</td>
+          <td><code style="font-size:11px">6c2d1186</code></td>
+          <td><code style="font-size:11px">34761d39</code></td>
+          <td style="text-align:center">77.2</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ facility id enc · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">32</td>
+          <td><code style="font-size:11px">814ebd35</code></td>
+          <td><code style="font-size:11px">ae8bfe30</code></td>
+          <td style="text-align:center">62.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">10.60%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">33</td>
+          <td><code style="font-size:11px">e944b5b3</code></td>
+          <td><code style="font-size:11px">39635ca5</code></td>
+          <td style="text-align:center">73.8</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">34</td>
+          <td><code style="font-size:11px">2be7f8bb</code></td>
+          <td><code style="font-size:11px">3b1cbe66</code></td>
+          <td style="text-align:center">66.9</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ dx hemi paraplegia · ↓ dx pvd</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">35</td>
+          <td><code style="font-size:11px">bdb2da8f</code></td>
+          <td><code style="font-size:11px">dc803ba5</code></td>
+          <td style="text-align:center">72.9</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ facility id enc · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">36</td>
+          <td><code style="font-size:11px">6f92eec4</code></td>
+          <td><code style="font-size:11px">dd081dce</code></td>
+          <td style="text-align:center">64.8</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">10.38%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ facility id enc · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">37</td>
+          <td><code style="font-size:11px">fa4281be</code></td>
+          <td><code style="font-size:11px">4f15dcca</code></td>
+          <td style="text-align:center">75.9</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ los days · ↑ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">38</td>
+          <td><code style="font-size:11px">dcc82ae6</code></td>
+          <td><code style="font-size:11px">2c11f747</code></td>
+          <td style="text-align:center">74.1</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">17.65%</td>
+          <td style="text-align:right;font-weight:bold">$1,354</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ vital o2 mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">39</td>
+          <td><code style="font-size:11px">9dca62ff</code></td>
+          <td><code style="font-size:11px">e2f298cf</code></td>
+          <td style="text-align:center">56.0</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">2.70%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,308</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ prior rth days since last</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">40</td>
+          <td><code style="font-size:11px">d01d977b</code></td>
+          <td><code style="font-size:11px">dd081dce</code></td>
+          <td style="text-align:center">62.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">2.70%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$1,308</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ facility id enc · ↑ dx hemi paraplegia</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">41</td>
+          <td><code style="font-size:11px">52236f01</code></td>
+          <td><code style="font-size:11px">3b1cbe66</code></td>
+          <td style="text-align:center">70.0</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">2.70%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,308</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ dx pvd</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">42</td>
+          <td><code style="font-size:11px">e57c9de2</code></td>
+          <td><code style="font-size:11px">838a03d8</code></td>
+          <td style="text-align:center">47.1</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.90%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,280</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ prior rth days since last</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">43</td>
+          <td><code style="font-size:11px">9898bcaa</code></td>
+          <td><code style="font-size:11px">95a860f1</code></td>
+          <td style="text-align:center">66.0</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.90%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,280</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ los days · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">44</td>
+          <td><code style="font-size:11px">e0398a8d</code></td>
+          <td><code style="font-size:11px">219d7816</code></td>
+          <td style="text-align:center">79.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.84%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,278</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ vital o2 mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">45</td>
+          <td><code style="font-size:11px">a29981ef</code></td>
+          <td><code style="font-size:11px">722ad2f4</code></td>
+          <td style="text-align:center">59.4</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.62%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,270</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ los days · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">46</td>
+          <td><code style="font-size:11px">679d5192</code></td>
+          <td><code style="font-size:11px">dd081dce</code></td>
+          <td style="text-align:center">57.1</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.62%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,270</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↑ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">47</td>
+          <td><code style="font-size:11px">a54dab9c</code></td>
+          <td><code style="font-size:11px">39635ca5</code></td>
+          <td style="text-align:center">61.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.62%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,270</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ dx sepsis · ↑ n comorbidities · ↓ prior rth days since last</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">48</td>
+          <td><code style="font-size:11px">45671feb</code></td>
+          <td><code style="font-size:11px">838a03d8</code></td>
+          <td style="text-align:center">73.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.62%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,270</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ los days · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">49</td>
+          <td><code style="font-size:11px">956c2f5c</code></td>
+          <td><code style="font-size:11px">722ad2f4</code></td>
+          <td style="text-align:center">57.9</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">0.83%</td>
+          <td style="text-align:center">6.07%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,242</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">50</td>
+          <td><code style="font-size:11px">db278d12</code></td>
+          <td><code style="font-size:11px">cef3d6ef</code></td>
+          <td style="text-align:center">67.4</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">5.08%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">10.38%</td>
+          <td style="text-align:right;font-weight:bold">$1,158</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ charlson score · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">51</td>
+          <td><code style="font-size:11px">5f7f4310</code></td>
+          <td><code style="font-size:11px">9779e9f8</code></td>
+          <td style="text-align:center">98.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.63%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$1,019</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">52</td>
+          <td><code style="font-size:11px">16b506bb</code></td>
+          <td><code style="font-size:11px">219d7816</code></td>
+          <td style="text-align:center">81.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.63%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">4.75%</td>
+          <td style="text-align:right;font-weight:bold">$1,019</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">53</td>
+          <td><code style="font-size:11px">91f15f9c</code></td>
+          <td><code style="font-size:11px">dd081dce</code></td>
+          <td style="text-align:center">84.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.04%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$998</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ age at obs · ↑ dx sepsis</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">54</td>
+          <td><code style="font-size:11px">b8812949</code></td>
+          <td><code style="font-size:11px">95a860f1</code></td>
+          <td style="text-align:center">71.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ dx sepsis · ↑ n comorbidities · ↓ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">55</td>
+          <td><code style="font-size:11px">ef76cac2</code></td>
+          <td><code style="font-size:11px">1f4e01a3</code></td>
+          <td style="text-align:center">64.2</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ charlson score · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">56</td>
+          <td><code style="font-size:11px">f63bf1cb</code></td>
+          <td><code style="font-size:11px">cb3b334e</code></td>
+          <td style="text-align:center">73.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ los days · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">57</td>
+          <td><code style="font-size:11px">f7fce45d</code></td>
+          <td><code style="font-size:11px">5141e8c0</code></td>
+          <td style="text-align:center">90.1</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ facility id enc · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">58</td>
+          <td><code style="font-size:11px">21c95778</code></td>
+          <td><code style="font-size:11px">df85c9dc</code></td>
+          <td style="text-align:center">77.9</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ charlson score · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">59</td>
+          <td><code style="font-size:11px">f229a139</code></td>
+          <td><code style="font-size:11px">838a03d8</code></td>
+          <td style="text-align:center">81.1</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">60</td>
+          <td><code style="font-size:11px">98324cc2</code></td>
+          <td><code style="font-size:11px">fafd3f81</code></td>
+          <td style="text-align:center">70.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">4.75%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ los days · ↓ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">61</td>
+          <td><code style="font-size:11px">9425d41d</code></td>
+          <td><code style="font-size:11px">722ad2f4</code></td>
+          <td style="text-align:center">63.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">17.65%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ vital pain mean 30d · ↓ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">62</td>
+          <td><code style="font-size:11px">9e628d3d</code></td>
+          <td><code style="font-size:11px">d0e1a91a</code></td>
+          <td style="text-align:center">77.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ dx pvd · ↓ vital o2 mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">63</td>
+          <td><code style="font-size:11px">ad38ba04</code></td>
+          <td><code style="font-size:11px">e49358ee</code></td>
+          <td style="text-align:center">55.4</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">36.73%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ prior rth days since last</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">64</td>
+          <td><code style="font-size:11px">f2d5e2a7</code></td>
+          <td><code style="font-size:11px">8aedc7ae</code></td>
+          <td style="text-align:center">72.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$997</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">65</td>
+          <td><code style="font-size:11px">49c70a40</code></td>
+          <td><code style="font-size:11px">95a860f1</code></td>
+          <td style="text-align:center">61.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.62%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$913</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">66</td>
+          <td><code style="font-size:11px">508c80e9</code></td>
+          <td><code style="font-size:11px">38fe8e1a</code></td>
+          <td style="text-align:center">53.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.62%</td>
+          <td style="text-align:center">4.28%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">4.19%</td>
+          <td style="text-align:right;font-weight:bold">$913</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ age at obs</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">67</td>
+          <td><code style="font-size:11px">b06eb969</code></td>
+          <td><code style="font-size:11px">fe2398e8</code></td>
+          <td style="text-align:center">75.2</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">3.77%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$894</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ dx hemi paraplegia</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">68</td>
+          <td><code style="font-size:11px">9d41a87e</code></td>
+          <td><code style="font-size:11px">2996573a</code></td>
+          <td style="text-align:center">73.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">3.77%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">17.45%</td>
+          <td style="text-align:right;font-weight:bold">$894</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">69</td>
+          <td><code style="font-size:11px">45d695dd</code></td>
+          <td><code style="font-size:11px">1a3e31c7</code></td>
+          <td style="text-align:center">85.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">3.77%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$894</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ age at obs · ↑ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">70</td>
+          <td><code style="font-size:11px">f7d4d49d</code></td>
+          <td><code style="font-size:11px">a0ab0d79</code></td>
+          <td style="text-align:center">40.1</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">3.77%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">4.19%</td>
+          <td style="text-align:right;font-weight:bold">$894</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ age at obs · ↑ n comorbidities · ↓ vital pain mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">71</td>
+          <td><code style="font-size:11px">a3be8f7c</code></td>
+          <td><code style="font-size:11px">64ef5542</code></td>
+          <td style="text-align:center">73.4</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">3.77%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">17.45%</td>
+          <td style="text-align:right;font-weight:bold">$894</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ vital pain mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">72</td>
+          <td><code style="font-size:11px">7a78d254</code></td>
+          <td><code style="font-size:11px">cef3d6ef</code></td>
+          <td style="text-align:center">76.2</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">3.77%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$894</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">73</td>
+          <td><code style="font-size:11px">9e415ec9</code></td>
+          <td><code style="font-size:11px">64ef5542</code></td>
+          <td style="text-align:center">65.2</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.84%</td>
+          <td style="text-align:center">3.77%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$818</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ dx hemi paraplegia · ↓ vital pain mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">74</td>
+          <td><code style="font-size:11px">3273bd60</code></td>
+          <td><code style="font-size:11px">ae8bfe30</code></td>
+          <td style="text-align:center">60.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.62%</td>
+          <td style="text-align:center">3.77%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$811</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ vital pain mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">75</td>
+          <td><code style="font-size:11px">a01fac6f</code></td>
+          <td><code style="font-size:11px">7b005bae</code></td>
+          <td style="text-align:center">53.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">1.62%</td>
+          <td style="text-align:center">3.77%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$811</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ age at obs · ↑ n comorbidities · ↓ vital pain mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">76</td>
+          <td><code style="font-size:11px">d49b2b9f</code></td>
+          <td><code style="font-size:11px">38fe8e1a</code></td>
+          <td style="text-align:center">100.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.63%</td>
+          <td style="text-align:center">2.95%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$752</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ age at obs · ↓ prior rth days since last</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">77</td>
+          <td><code style="font-size:11px">53891cc0</code></td>
+          <td><code style="font-size:11px">7db9c634</code></td>
+          <td style="text-align:center">75.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">17.65%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ vital o2 mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">78</td>
+          <td><code style="font-size:11px">bd6d5ed2</code></td>
+          <td><code style="font-size:11px">95a860f1</code></td>
+          <td style="text-align:center">72.2</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ vital o2 mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">79</td>
+          <td><code style="font-size:11px">fc2861a8</code></td>
+          <td><code style="font-size:11px">8003f313</code></td>
+          <td style="text-align:center">77.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ charlson score · ↓ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">80</td>
+          <td><code style="font-size:11px">b6cb6425</code></td>
+          <td><code style="font-size:11px">7db9c634</code></td>
+          <td style="text-align:center">76.9</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ prior days since last fall</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">81</td>
+          <td><code style="font-size:11px">a7b24b0f</code></td>
+          <td><code style="font-size:11px">5fc8ece3</code></td>
+          <td style="text-align:center">92.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ age at obs · ↑ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">82</td>
+          <td><code style="font-size:11px">8e7946ed</code></td>
+          <td><code style="font-size:11px">95a860f1</code></td>
+          <td style="text-align:center">70.5</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ vital o2 mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">83</td>
+          <td><code style="font-size:11px">24f5dc2c</code></td>
+          <td><code style="font-size:11px">2996573a</code></td>
+          <td style="text-align:center">73.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">10.38%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ vital o2 mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">84</td>
+          <td><code style="font-size:11px">20c7aa5b</code></td>
+          <td><code style="font-size:11px">03be8a7d</code></td>
+          <td style="text-align:center">63.2</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ dx pvd</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">85</td>
+          <td><code style="font-size:11px">d1dd9a86</code></td>
+          <td><code style="font-size:11px">fe2398e8</code></td>
+          <td style="text-align:center">64.4</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ vital pain mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">86</td>
+          <td><code style="font-size:11px">c094f3fa</code></td>
+          <td><code style="font-size:11px">cef3d6ef</code></td>
+          <td style="text-align:center">72.0</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">87</td>
+          <td><code style="font-size:11px">72fcce4d</code></td>
+          <td><code style="font-size:11px">cef3d6ef</code></td>
+          <td style="text-align:center">66.4</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↑ dx afib</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">88</td>
+          <td><code style="font-size:11px">de2e140e</code></td>
+          <td><code style="font-size:11px">fe2398e8</code></td>
+          <td style="text-align:center">64.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">89</td>
+          <td><code style="font-size:11px">cc3cb660</code></td>
+          <td><code style="font-size:11px">3ca39434</code></td>
+          <td style="text-align:center">89.6</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ age at obs · ↑ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">90</td>
+          <td><code style="font-size:11px">b25956f5</code></td>
+          <td><code style="font-size:11px">524cee69</code></td>
+          <td style="text-align:center">68.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">4.75%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">91</td>
+          <td><code style="font-size:11px">10fd2fe1</code></td>
+          <td><code style="font-size:11px">3f7452d1</code></td>
+          <td style="text-align:center">65.8</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ dx pvd</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">92</td>
+          <td><code style="font-size:11px">778a75cd</code></td>
+          <td><code style="font-size:11px">4f15dcca</code></td>
+          <td style="text-align:center">65.3</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.97%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$734</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ los days · ↓ charlson score</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">93</td>
+          <td><code style="font-size:11px">1c654d16</code></td>
+          <td><code style="font-size:11px">3ca39434</code></td>
+          <td style="text-align:center">97.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.04%</td>
+          <td style="text-align:center">2.95%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$731</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ age at obs · ↓ prior rth days since last</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">94</td>
+          <td><code style="font-size:11px">e0e43dcf</code></td>
+          <td><code style="font-size:11px">df85c9dc</code></td>
+          <td style="text-align:center">82.9</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.95%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$730</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ age at obs · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">95</td>
+          <td><code style="font-size:11px">af2b9b60</code></td>
+          <td><code style="font-size:11px">b6dd0527</code></td>
+          <td style="text-align:center">81.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.95%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$730</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ age at obs · ↑ facility id enc</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">96</td>
+          <td><code style="font-size:11px">a218fe89</code></td>
+          <td><code style="font-size:11px">055d33c9</code></td>
+          <td style="text-align:center">96.7</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.95%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">10.38%</td>
+          <td style="text-align:right;font-weight:bold">$730</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ dx sepsis · ↓ age at obs · ↑ n comorbidities</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">97</td>
+          <td><code style="font-size:11px">faf8eb63</code></td>
+          <td><code style="font-size:11px">fa2a1adc</code></td>
+          <td style="text-align:center">71.4</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.95%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$730</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ vital pain mean 30d · ↓ prior days since last fall</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">98</td>
+          <td><code style="font-size:11px">b0711bb3</code></td>
+          <td><code style="font-size:11px">7c8c7e93</code></td>
+          <td style="text-align:center">69.8</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.95%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$730</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ vital pain mean 30d</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">99</td>
+          <td><code style="font-size:11px">85061c45</code></td>
+          <td><code style="font-size:11px">95a860f1</code></td>
+          <td style="text-align:center">78.2</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.95%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">3.99%</td>
+          <td style="text-align:right;font-weight:bold">$730</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↓ prior rth days since last · ↓ los days</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">100</td>
+          <td><code style="font-size:11px">493bfc46</code></td>
+          <td><code style="font-size:11px">7c8c7e93</code></td>
+          <td style="text-align:center">56.9</td>
+          <td style="text-align:center"><span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:4px;font-size:12px">High</span></td>
+          <td style="text-align:center">4.02%</td>
+          <td style="text-align:center">2.95%</td>
+          <td style="text-align:center;color:#aaa;font-style:italic">15.50%</td>
+          <td style="text-align:right;font-weight:bold">$730</td>
+          <td style="font-size:11px;color:#555">[RTH] ↑ n comorbidities · ↑ age at obs · ↓ los days</td>
+        </tr></tbody>
+</table>
+</body>
+</html>

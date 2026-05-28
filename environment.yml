@@ -1,0 +1,18 @@
+name: tricura       # Name of the environment
+channels:                  # Repositories to search for packages
+  - conda-forge
+  - defaults
+dependencies:              # Packages to install via conda
+  - python=3.11
+  - numpy=2.4.6
+  - pandas=3.0.2
+  - pandas-stubs=3.0.0.260204
+  - optuna=4.8.0
+  - xgboost=3.2.0
+  - shap=0.51.0
+  - matplotlib=3.10.9
+  - scikit-learn=1.8.0
+  - pyarrow=24.0.0
+  - pip
+  - pytest=9.0.3
+  - pytest-cov=7.1.0

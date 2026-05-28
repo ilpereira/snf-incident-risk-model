@@ -1,0 +1,49 @@
+{
+  "fall_30d": {
+    "pr_auc": 0.2833,
+    "roc_auc": 0.8215,
+    "brier_score": 0.0584,
+    "log_loss": 0.2109,
+    "best_threshold": 0.1966,
+    "f1_at_threshold": 0.4,
+    "sensitivity": 0.5949,
+    "specificity": 0.8904,
+    "ppv": 0.3013,
+    "npv": 0.9651,
+    "positive_rate": 0.0736,
+    "n_positive": 664,
+    "n_total": 9021
+  },
+  "rth_60d": {
+    "pr_auc": 0.105,
+    "roc_auc": 0.6888,
+    "brier_score": 0.0326,
+    "log_loss": 0.1428,
+    "best_threshold": 0.0607,
+    "f1_at_threshold": 0.1385,
+    "sensitivity": 0.5,
+    "specificity": 0.7965,
+    "ppv": 0.0804,
+    "npv": 0.9781,
+    "positive_rate": 0.0344,
+    "n_positive": 310,
+    "n_total": 9021
+  },
+  "wound_60d": {
+    "pr_auc": 0.0763,
+    "roc_auc": 0.6616,
+    "brier_score": 0.0441,
+    "log_loss": 0.1817,
+    "best_threshold": 0.106,
+    "f1_at_threshold": 0.1717,
+    "sensitivity": 0.3496,
+    "specificity": 0.8706,
+    "ppv": 0.1138,
+    "npv": 0.9657,
+    "positive_rate": 0.0453,
+    "n_positive": 409,
+    "n_total": 9021
+  },
+  "n_test_facilities": 20,
+  "model_type": "XGBoost (binary:logistic, tree_method=hist)"
+}
