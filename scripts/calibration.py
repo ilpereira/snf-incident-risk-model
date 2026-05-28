@@ -66,7 +66,6 @@ def discover_targets(output_dir: Path) -> list[str]:
     """
     Find all targets for which both a trained model and OOF predictions exist.
     Works with any target naming convention (fall_30d, rth_30d, rth_60d, etc.)
-    so this script can be applied to both v1 and v2 model artifacts.
     """
     models_dir  = output_dir / "models"
     metrics_dir = output_dir / "metrics"

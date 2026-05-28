@@ -38,7 +38,6 @@ LABEL_HORIZONS: dict[str, int] = {
     "wound_60d": 60,
 }
 TARGETS = list(LABEL_HORIZONS.keys())
-DASHBOARD_ACTIVE_TARGETS = ["fall_30d", "rth_60d"]   # subset shown on the risk dashboard
 
 # ── Comorbidity ICD-10 prefix map ──────────────────────────────────────────
 COMORBIDITY_MAP = {
@@ -196,14 +195,14 @@ EARLY_STOPPING_ROUNDS = 50
 # The raw ratio n_negative/n_positive can reach 49× for a 2% positive-rate
 # target, which severely overcorrects class imbalance and inflates all
 # predicted probabilities well above their true values (confirmed by the
-# BSS of -9.4 for rth_30d in v1).  Capping at 10× limits this distortion
+# BSS of -9.4 for rth_30d in previous version).  Capping at 10× limits this distortion
 # while still up-weighting the minority class meaningfully.
 # Post-training isotonic calibration corrects any residual bias.
 SCALE_POS_WEIGHT_MAX = 10.0
 
 # ── Per-target feature exclusions ─────────────────────────────────────────
 # facility_id_enc ranks 2nd by |SHAP| in the wound model but represents
-# memorised facility effects that do not generalise to unseen facilities.
+# memorized facility effects that do not generalize to unseen facilities.
 # Excluding it forces the model to learn portable clinical signals instead.
 EXCLUDE_FEATURES_BY_TARGET: dict[str, list[str]] = {
     "wound_60d": ["facility_id_enc"],

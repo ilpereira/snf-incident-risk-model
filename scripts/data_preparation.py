@@ -18,7 +18,7 @@ Design notes
 
 • Temporal integrity:  every feature is computed strictly from data BEFORE obs_date.
   Labels are computed from data in (obs_date, obs_date + 30 days].
-  Residents discharged or deceased within the label window are handled by labelling
+  Residents discharged or deceased within the label window are handled by labeling
   on events that occurred before discharge (they are not excluded).
 
 • Rolling window strategy:
@@ -83,7 +83,7 @@ def load_raw_data(data_dir: Path) -> dict[str, pd.DataFrame]:
 def build_observation_spine(residents: pd.DataFrame) -> pd.DataFrame:
     """
     Generate one row per (resident_id, obs_date) for every resident
-    during their active stay within the valid modelling window.
+    during their active stay within the valid modeling window.
 
     Valid window per resident:
         start = max(admission_date + MIN_HISTORY_DAYS, DATA_START)

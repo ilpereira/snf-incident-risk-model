@@ -1,20 +1,20 @@
 """
-model_training.py  (v2 — calibrated)
+model_training.py
 ────────────────────────────────────────
 Trains XGBoost binary classifiers for each outcome and applies post-training
 isotonic calibration to correct systematic probability over-prediction.
 
-Three fixes relative to v1
+Additional fixes
 ──────────────────────────
 1. scale_pos_weight cap (SCALE_POS_WEIGHT_MAX = 10)
    The raw ratio n_negative/n_positive reached 49× for rth_60d (2% positive
    rate), pushing all predicted probabilities far above their true values
-   (Brier Skill Score was -9.4 in v1).  Capping at 10× dramatically reduces
+   (Brier Skill Score was -9.4 in previous version).  Capping at 10× dramatically reduces
    this distortion while still up-weighting the minority class.
 
 2. Per-target feature exclusion (EXCLUDE_FEATURES_BY_TARGET)
    facility_id_enc was the 2nd-ranked SHAP feature in the wound model —
-   it encoded memorised facility effects that do not generalise to unseen
+   it encoded memorized facility effects that do not generalize to unseen
    facilities.  It is dropped for wound_60d before training.
 
 3. Post-training isotonic calibration using OOF predictions
@@ -120,7 +120,7 @@ def _capped_spw(y: pd.Series) -> float:
 
     Without the cap, a 2% positive-rate target gets spw = 49×, which inflates
     all predicted probabilities far above their true values — confirmed by a
-    Brier Skill Score of -9.4 in v1.  The cap limits this distortion; residual
+    Brier Skill Score of -9.4 in previous version.  The cap limits this distortion; residual
     miscalibration is corrected by isotonic calibration post-training.
     """
     pos_rate = y.mean()
@@ -154,7 +154,7 @@ def fit_calibrator(oof_predictions: np.ndarray, y_true: np.ndarray) -> IsotonicR
 
     IsotonicRegression is monotone and non-parametric — it can correct any
     shape of miscalibration, including the severe over-prediction (raw scores
-    clustered around 0.45 against true rates of 0.02-0.09) seen in v1.
+    clustered around 0.45 against true rates of 0.02-0.09) seen in previous version.
     out_of_bounds='clip' ensures scores outside the training range are handled
     gracefully at inference time.
     """

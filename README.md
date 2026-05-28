@@ -8,24 +8,96 @@ Built for a liability insurer whose claims exposure is concentrated in resident 
 
 ## Table of Contents
 
-1. [Business problem](#1-business-problem)
-2. [Insurance domain context](#2-insurance-domain-context)
-3. [Prediction approach](#3-prediction-approach)
-4. [Data](#4-data)
-5. [Feature engineering](#5-feature-engineering)
-6. [Model design](#6-model-design)
-7. [Evaluation metrics and their rationale](#7-evaluation-metrics-and-their-rationale)
-8. [Key decisions and tradeoffs](#8-key-decisions-and-tradeoffs)
-9. [Repository structure](#9-repository-structure)
-10. [How to run](#10-how-to-run)
+1. [How to run](#1-how-to-run)
+2. [Business problem](#2-business-problem)
+3. [Insurance domain context](#3-insurance-domain-context)
+4. [Prediction approach](#4-prediction-approach)
+5. [Data](#5-data)
+6. [Feature engineering](#6-feature-engineering)
+7. [Model design](#7-model-design)
+8. [Evaluation metrics and their rationale](#8-evaluation-metrics-and-their-rationale)
+9. [Key decisions and tradeoffs](#9-key-decisions-and-tradeoffs)
+10. [Repository structure](#10-repository-structure)
 11. [Outputs](#11-outputs)
-12. [Model evaluation findings](#12-model-evaluation-findings)
+12. [Key findings](#12-key-findings)
 13. [Open limitations identified from live scoring](#13-open-limitations-identified-from-live-scoring)
 14. [References](#references)
 
 ---
 
-## 1. Business problem
+## 1. How to run
+
+### Requirements
+
+This project uses a conda environment defined in `environment.yml` (Python 3.11, conda-forge channel).
+
+```bash
+conda env create -f environment.yml
+conda activate tricura
+```
+
+To update an existing environment after changes to `environment.yml`:
+
+```bash
+conda env update -f environment.yml --prune
+```
+
+### Configuration
+
+Edit `config.py`:
+
+```python
+DATA_DIR   = Path("/path/to/your/parquet/files")
+OUTPUT_DIR = Path("outputs")
+```
+
+Key tunable parameters (all in `config.py`):
+
+| Parameter | Default | Effect |
+|---|---|---|
+| `SCALE_POS_WEIGHT_MAX` | `10.0` | Cap on class imbalance upweighting |
+| `CALIBRATION_METHOD` | `"isotonic"` | `"isotonic"` or `"sigmoid"` |
+| `RISK_TIER_PERCENTILES` | `{"high": 75, "medium": 50}` | Percentile cutoffs applied to `expected_cost_30d` |
+| `DASHBOARD_ACTIVE_TARGETS` | `["fall_30d", "rth_60d"]` | Targets that contribute to expected cost and tiers; `wound_60d` suppressed |
+| `EXCLUDE_FEATURES_BY_TARGET` | `{"wound_60d": ["facility_id_enc"]}` | Feature exclusions per target |
+| `OPTUNA_N_TRIALS` | `30` | Reduce to 10 for a quick smoke test |
+| `N_CV_FOLDS` | `5` | Reduce to 3 for faster iteration |
+
+### Full pipeline
+
+```bash
+# Step 1 — Build feature matrix with per-target label horizons (~15 min)
+python data_preparation.py
+
+# Step 2 — Train with calibration (~25 min)
+python model_training.py
+
+# Step 3 — Evaluate with calibrated probabilities (~5 min)
+python model_evaluation.py
+
+# Step 4 — Score active residents (~3 min)
+python risk_scoring.py
+```
+
+### Calibrating without retraining
+
+If you already have trained XGBoost models and OOF predictions, you can fit the calibrators without retraining:
+
+```bash
+# Requires: outputs/models/xgb_*.pkl
+#           outputs/metrics/oof_*.parquet
+python calibration.py
+
+# Then regenerate evaluation and dashboard with calibrated probabilities:
+python model_evaluation.py
+python risk_scoring.py
+```
+
+The script auto-detects available target names from OOF file names in `outputs/metrics/`.
+
+---
+
+## 2. Business problem
 
 The company insures skilled nursing facilities against liability arising from resident incidents. The claims portfolio breaks down as follows:
 
@@ -42,17 +114,17 @@ RTH events dominate dollar exposure despite a modest claim share, because the av
 
 The model is designed to answer a concrete question that facility staff and insurers can act on: *which residents are most likely to generate a high-cost incident in the next 30–60 days, and why?*
 
-> **Why medication errors are not modelled as a target.** Despite representing ~10% of claims at $5,000 average cost, the `incidents` table contains only 44 medication error records across 3,000 residents — a 13:1 shortfall relative to wound incidents. The discrepancy is almost certainly underreporting (facilities have strong incentives not to document errors). Labels derived from a heavily selected, non-representative sample train the model to predict documentation behaviour rather than clinical risk. Medication process quality is instead captured as features: miss rate, late-dose rate, polypharmacy count, and psychotropic drug exposure.
+> **Why medication errors are not modeled as a target.** Despite representing ~10% of claims at $5,000 average cost, the `incidents` table contains only 44 medication error records across 3,000 residents — a 13:1 shortfall relative to wound incidents. The discrepancy is almost certainly underreporting (facilities have strong incentives not to document errors). Labels derived from a heavily selected, non-representative sample train the model to predict documentation behavior rather than clinical risk. Medication process quality is instead captured as features: miss rate, late-dose rate, polypharmacy count, and psychotropic drug exposure.
 
 ---
 
-## 2. Insurance domain context
+## 3. Insurance domain context
 
 **Loss ratio** is the ratio of claims paid to premiums collected. A sustained loss ratio above ~70% signals unprofitability after operational costs. [1] The model reduces this by surfacing actionable risk earlier — every prevented incident improves the loss ratio without requiring a premium increase.
 
 **Pure premium** is the expected annual cost per insured unit. Facility-level pricing today relies on historical averages. A resident-level risk score allows decomposition of that aggregate into individual risk contributions, enabling more accurate facility-level pricing.
 
-**Experience rating** adjusts a client's premium against their own loss history relative to the expected baseline. Without risk adjustment, a facility with a genuinely high-acuity resident mix may be penalised even if their care quality is excellent. The model provides the risk-adjusted counterfactual: given *this* population, how many incidents would we expect? [1]
+**Experience rating** adjusts a client's premium against their own loss history relative to the expected baseline. Without risk adjustment, a facility with a genuinely high-acuity resident mix may be penalized even if their care quality is excellent. The model provides the risk-adjusted counterfactual: given *this* population, how many incidents would we expect? [1]
 
 **Calibrated probabilities are essential for financial use.** The expected-cost formula in the dashboard (`score × avg_claim_cost`) only produces correct financial forecasts when `score` is a true probability. An uncalibrated model that inflates all scores 10× inflates the portfolio exposure estimate 10× — material for loss reserving and premium decisions. This is why isotonic calibration is a mandatory step rather than an optional enhancement.
 
@@ -60,7 +132,7 @@ The model is designed to answer a concrete question that facility staff and insu
 
 ---
 
-## 3. Prediction approach
+## 4. Prediction approach
 
 ### Target definition
 
@@ -76,7 +148,7 @@ Rows where `obs_date + horizon > DATA_AVAILABILITY_END` cannot have complete lab
 
 ### Observation unit
 
-One row per resident per 7-day step across their active stay. For 3,000 residents over ~18 months, this produces approximately 150,000–300,000 labelled rows.
+One row per resident per 7-day step across their active stay. For 3,000 residents over ~18 months, this produces approximately 150,000–300,000 labeled rows.
 
 Each row has strict temporal separation: features use only data before `obs_date`; labels use only data after it. No look-ahead leakage.
 
@@ -86,7 +158,7 @@ The three targets have distinct clinical drivers. Falls are driven by mobility d
 
 ---
 
-## 4. Data
+## 5. Data
 
 3,000 residents across 100 facilities, with longitudinal records spanning approximately 2023–2025.
 
@@ -109,7 +181,7 @@ The three targets have distinct clinical drivers. Falls are driven by mobility d
 
 ---
 
-## 5. Feature engineering
+## 6. Feature engineering
 
 All features computed strictly from data before `obs_date`. Rolling statistics (mean, std, min, max) at 7-, 30-, and 90-day windows using `pandas groupby().rolling()`.
 
@@ -139,11 +211,11 @@ All features computed strictly from data before `obs_date`. Rolling statistics (
 
 ---
 
-## 6. Model design
+## 7. Model design
 
 ### Algorithm: XGBoost with histogram split-finding
 
-`xgboost.XGBClassifier` with `objective="binary:logistic"` and `tree_method="hist"` [8]. Three independent binary classifiers, one per target.
+`xgboost.XGBClassifier` with `objective="binary:logistic"` and `tree_method="hist"`. Three independent binary classifiers, one per target.
 
 ### Class imbalance handling
 
@@ -159,11 +231,11 @@ The calibrator is monotone, so all discrimination metrics (ROC-AUC, PR-AUC, feat
 
 ### Feature exclusion per target
 
-`facility_id_enc` is excluded from the wound model (`EXCLUDE_FEATURES_BY_TARGET`). Without this exclusion, it ranks 2nd by mean |SHAP| [9, 10] for wound prediction, meaning the model memorises facility-level effects rather than learning portable clinical signals. Facility-level ROC-AUC variance in the wound model ranged from 0.115 to 0.969 — near-random on some facilities, excellent on others — consistent with facility memorisation that fails to generalise.
+`facility_id_enc` is excluded from the wound model (`EXCLUDE_FEATURES_BY_TARGET`). Without this exclusion, it ranks 2nd by mean |SHAP| [9, 10] for wound prediction, meaning the model memorizes facility-level effects rather than learning portable clinical signals. Facility-level ROC-AUC variance in the wound model ranged from 0.115 to 0.969 — near-random on some facilities, excellent on others — consistent with facility memorization that fails to generalize.
 
 ### Hyperparameter tuning: Optuna TPE
 
-30 trials of Bayesian optimisation (TPE sampler) [11] per target, searching over learning rate, max depth, min child weight, subsample, colsample_bytree, and L1/L2 regularisation. Objective: mean PR-AUC across 5 facility-held-out CV folds.
+30 trials of Bayesian optimisation (TPE sampler) per target, searching over learning rate, max depth, min child weight, subsample, colsample_bytree, and L1/L2 regularisation. Objective: mean PR-AUC across 5 facility-held-out CV folds.
 
 ### Final model training
 
@@ -171,7 +243,7 @@ The calibrator is monotone, so all discrimination metrics (ROC-AUC, PR-AUC, feat
 
 ---
 
-## 7. Evaluation metrics and their rationale
+## 8. Evaluation metrics and their rationale
 
 **PR-AUC (primary):** measures discrimination on the minority class. More sensitive than ROC-AUC to class imbalance [13]. Used in tuning, CV, and final evaluation.
 
@@ -183,11 +255,11 @@ The calibrator is monotone, so all discrimination metrics (ROC-AUC, PR-AUC, feat
 
 ### Validation strategy: facility-held-out GroupKFold
 
-Cross-validation groups on `facility_id` — all residents from a held-out set of facilities are excluded from each training fold. This tests generalisation to new facilities rather than new residents at known ones. The final test set holds out 20% of facilities (20 of 100).
+Cross-validation groups on `facility_id` — all residents from a held-out set of facilities are excluded from each training fold. This tests generalization to new facilities rather than new residents at known ones. The final test set holds out 20% of facilities (20 of 100).
 
 ---
 
-## 8. Key decisions and tradeoffs
+## 9. Key decisions and tradeoffs
 
 **Three separate models vs. multi-label.** Separate models per target are easier to calibrate, explain, and update independently. Multi-task learning becomes attractive at >100K residents where joint training provides meaningful regularisation.
 
@@ -197,7 +269,7 @@ Cross-validation groups on `facility_id` — all residents from a held-out set o
 
 **scale_pos_weight capped at 10×, with post-training isotonic calibration.** The raw class-imbalance ratio `n_negative / n_positive` reaches 49× for a 2% positive-rate target. Applying this uncapped inflates all predicted probabilities far above their true values — in testing, uncapped upweighting produced mean predictions of 0.46 against a true rate of 0.02 (Brier Skill Score = −9.4). `SCALE_POS_WEIGHT_MAX = 10.0` limits this distortion. After training, an `IsotonicRegression` calibrator is fitted on the out-of-fold predictions from cross-validation and applied transparently at scoring time. Isotonic regression is chosen over Platt scaling [12] because the miscalibration shape produced by high `scale_pos_weight` values is non-linear; simulation confirms a ~92% Brier score reduction relative to uncapped upweighting.
 
-**Per-target feature exclusion.** `facility_id_enc` is excluded from the wound model via `EXCLUDE_FEATURES_BY_TARGET`. Without this exclusion it ranks 2nd by mean |SHAP| (0.176, versus the top feature at 0.188), indicating the model memorises facility-level documentation patterns rather than portable clinical signals — confirmed by facility-level wound ROC-AUC ranging from 0.115 to 0.969, near-random on some held-out facilities and high on others. `facility_id_enc` is retained for fall and RTH, where it provides legitimate population-level signal without the same generalisation failure.
+**Per-target feature exclusion.** `facility_id_enc` is excluded from the wound model via `EXCLUDE_FEATURES_BY_TARGET`. Without this exclusion it ranks 2nd by mean |SHAP| (0.176, versus the top feature at 0.188), indicating the model memorizes facility-level documentation patterns rather than portable clinical signals — confirmed by facility-level wound ROC-AUC ranging from 0.115 to 0.969, near-random on some held-out facilities and high on others. `facility_id_enc` is retained for fall and RTH, where it provides legitimate population-level signal without the same generalization failure.
 
 **Tier assignment on combined expected cost, not per-target percentiles.** The dashboard assigns tiers by ranking residents on their total expected claim cost — `fall_score × $3,500 + rth_score × $20,000` — rather than computing per-target percentile tiers and taking the worst. Applying a 25%-High threshold independently to each active target and taking the worst produces a union probability of approximately `1 − 0.75^N` — roughly 44% for two targets, growing with more — far above the intended 25%. Tiering on the single combined cost column guarantees exactly 25% High, 25% Medium, 50% Low regardless of the number of active models or their score distributions.
 
@@ -207,7 +279,7 @@ Cross-validation groups on `facility_id` — all residents from a held-out set o
 
 ---
 
-## 9. Repository structure
+## 10. Repository structure
 
 ```
 .
@@ -284,71 +356,6 @@ Cross-validation groups on `facility_id` — all residents from a held-out set o
         ├── score_distributions.png
         └── facility_risk_scatter.png
 ```
-
----
-
-## 10. How to run
-
-### Requirements
-
-```bash
-pip install xgboost shap optuna scikit-learn matplotlib pandas pyarrow
-```
-
-Tested with Python 3.11+, XGBoost 3.x, SHAP 0.45+, scikit-learn 1.3+.
-
-### Configuration
-
-Edit `config.py`:
-
-```python
-DATA_DIR   = Path("/path/to/your/parquet/files")
-OUTPUT_DIR = Path("outputs")
-```
-
-Key tunable parameters (all in `config.py`):
-
-| Parameter | Default | Effect |
-|---|---|---|
-| `SCALE_POS_WEIGHT_MAX` | `10.0` | Cap on class imbalance upweighting |
-| `CALIBRATION_METHOD` | `"isotonic"` | `"isotonic"` or `"sigmoid"` |
-| `RISK_TIER_PERCENTILES` | `{"high": 75, "medium": 50}` | Percentile cutoffs applied to `expected_cost_30d` |
-| `DASHBOARD_ACTIVE_TARGETS` | `["fall_30d", "rth_60d"]` | Targets that contribute to expected cost and tiers; `wound_60d` suppressed |
-| `EXCLUDE_FEATURES_BY_TARGET` | `{"wound_60d": ["facility_id_enc"]}` | Feature exclusions per target |
-| `OPTUNA_N_TRIALS` | `30` | Reduce to 10 for a quick smoke test |
-| `N_CV_FOLDS` | `5` | Reduce to 3 for faster iteration |
-
-### Full pipeline
-
-```bash
-# Step 1 — Build feature matrix with per-target label horizons (~15 min)
-python data_preparation.py
-
-# Step 2 — Train with calibration (~25 min)
-python model_training.py
-
-# Step 3 — Evaluate with calibrated probabilities (~5 min)
-python model_evaluation.py
-
-# Step 4 — Score active residents (~3 min)
-python risk_scoring.py
-```
-
-### Calibrating without retraining
-
-If you already have trained XGBoost models and OOF predictions, you can fit the calibrators without retraining:
-
-```bash
-# Requires: outputs/models/xgb_*.pkl
-#           outputs/metrics/oof_*.parquet
-python calibration.py
-
-# Then regenerate evaluation and dashboard with calibrated probabilities:
-python model_evaluation.py
-python risk_scoring.py
-```
-
-The script auto-detects available target names from OOF file names in `outputs/metrics/`.
 
 ---
 
@@ -449,7 +456,7 @@ All findings below are derived from the plots generated by `model_evaluation.py`
 - `n_comorbidities` (mean |SHAP| = 0.443) is dominant at 2.3× the second feature. The SHAP dependence plot shows the widest range of any feature across all models: zero comorbidities drives SHAP as low as −1.5; high comorbidity burden contributes up to +0.5. Cumulative disease burden is the primary RTH signal.
 - `prior_rth_days_since_last` (0.196): recent prior RTH within 0–250 days contributes +0.6 to +0.8 SHAP; beyond 1,000 days (no history) the contribution approaches zero or turns negative.
 - `age_at_obs` (0.127) and `los_days` (0.090) contribute broadly, though their SHAP dependence plots show noisy, non-monotone relationships — they capture background frailty rather than a specific acute signal.
-- `facility_id_enc` ranks 5th (0.070), above several clinical features. This is a residual risk: the model has learnt that some facilities have systematically higher RTH rates even after controlling for resident-level features, which limits generalisation to new facilities.
+- `facility_id_enc` ranks 5th (0.070), above several clinical features. This is a residual risk: the model has learnt that some facilities have systematically higher RTH rates even after controlling for resident-level features, which limits generalization to new facilities.
 - Pain variability (`vital_pain_std_30d`, `vital_pain_mean_30d`) and O2 saturation features appear in the top 20, confirming that vital sign instability is a meaningful RTH signal — consistent with the clinical literature on acute deterioration [4].
 - The RTH model feature set is broader and more evenly distributed than the fall model (no single feature dominates above 0.443 vs 0.720 for fall), reflecting that RTH risk is driven by a combination of chronic burden and acute signals rather than a single dominant prior-event history.
 
@@ -463,7 +470,7 @@ All findings below are derived from the plots generated by `model_evaluation.py`
 
 #### Cross-target patterns
 
-- `n_comorbidities` is the most universally important feature — ranked 1st for RTH and wound, 2nd for fall. Comorbidity burden is the clearest generalised risk signal across all outcome types.
+- `n_comorbidities` is the most universally important feature — ranked 1st for RTH and wound, 2nd for fall. Comorbidity burden is the clearest generalized risk signal across all outcome types.
 - `prior_days_since_last_fall` cross-contaminates into wound (normalised importance ~0.6) and RTH (~0.1), suggesting a recent fall is a broader signal of acute health deterioration, not just a predictor of subsequent falls.
 - `dx_dementia` is nearly exclusively a wound feature (normalised ~1.0 for wound vs ~0.1 for fall and near-zero for RTH), validating that the three models have learned meaningfully distinct clinical signatures rather than duplicating the same signal.
 - Vital sign features (pain mean/std/min/max, O2 mean/std, glucose std, respiratory rate) appear in the top 20 of all three models but carry more weight for fall and RTH than wound, reflecting that acute physiological instability drives near-term deterioration events more than wound development.
@@ -490,14 +497,14 @@ The mean predicted probabilities match observed event rates to within reasonable
 
 ### SHAP drivers reflect genuine low-risk population, not model failure
 
-All top features show negative mean SHAP values — they push predicted scores below the base rate on average. This is the correct behaviour for a population where 93% of residents have no incident in any given 30-day window. The dominant fall feature, `prior_days_since_last_fall`, is strongly positive (mean SHAP +0.99) for the minority of residents who did fall recently, and strongly negative for the 83% with no recent fall history. `n_comorbidities` is positive 84.5% of the time — meaning the model mostly uses it in the risk-increasing direction, as expected — but because the absolute magnitude is smaller, the feature appears negative at population level. The clinical interpretation of top drivers for each model is sensible: fall risk is anchored to fall history and comorbidity burden; RTH risk to comorbidity load and prior hospitalisation; wound risk to chronic disease diagnoses (dementia, malnutrition, stroke) and age.
+All top features show negative mean SHAP values — they push predicted scores below the base rate on average. This is the correct behavior for a population where 93% of residents have no incident in any given 30-day window. The dominant fall feature, `prior_days_since_last_fall`, is strongly positive (mean SHAP +0.99) for the minority of residents who did fall recently, and strongly negative for the 83% with no recent fall history. `n_comorbidities` is positive 84.5% of the time — meaning the model mostly uses it in the risk-increasing direction, as expected — but because the absolute magnitude is smaller, the feature appears negative at population level. The clinical interpretation of top drivers for each model is sensible: fall risk is anchored to fall history and comorbidity burden; RTH risk to comorbidity load and prior hospitalization; wound risk to chronic disease diagnoses (dementia, malnutrition, stroke) and age.
 
 
 ### Business actions
 
 **Deploy the fall model for daily facility triage.** Ranking the 612 active residents by `fall_30d_score` and flagging the top quartile (approximately 153 residents) for clinical review is justified by the model's discrimination quality. With PPV of 30.1%, 1 in 3 flagged residents will fall without intervention — a rate 4× higher than random screening. The expected cost of a fall-prevention intervention (PT referral, environmental modification, medication review) is materially lower than the $3,500 average claim cost. Run this list every morning, prioritising residents with `prior_days_since_last_fall` below 30 and active `need_fall_active` flags.
 
-**Use RTH scores for watchlisting the extreme top-decile only.** The score compression means the RTH model only reliably identifies outlier residents — those in roughly the top 5–10% of `rth_60d_score`. At a score of 8.8% (the observed maximum), the odds of an RTH event in 60 days are approximately 2.5× the base rate. These residents should be flagged for weekly physician review: medication reconciliation, fluid balance checks, and early escalation protocols. Do not use RTH scores for financial modelling at the individual level given the low PPV of 8% — the model captures the direction of risk but not the magnitude at the individual-resident level.
+**Use RTH scores for watchlisting the extreme top-decile only.** The score compression means the RTH model only reliably identifies outlier residents — those in roughly the top 5–10% of `rth_60d_score`. At a score of 8.8% (the observed maximum), the odds of an RTH event in 60 days are approximately 2.5× the base rate. These residents should be flagged for weekly physician review: medication reconciliation, fluid balance checks, and early escalation protocols. Do not use RTH scores for financial modeling at the individual level given the low PPV of 8% — the model captures the direction of risk but not the magnitude at the individual-resident level.
 
 **Use \$466K as the 30/60-day expected claims estimate.** After removing the wound component (which is unreliable), the fall and RTH contributions alone sum to approximately \$298K (\$64K fall + \$234K RTH). Adding a 25% reserve buffer for model uncertainty yields a working claims provision of \$370K–\$466K for this facility population. This figure should be reviewed at the facility level: the RTH model under-predicts at 10 of the 20 test facilities (mean pred/obs ratio 0.67×), suggesting those facilities may generate higher-than-estimated RTH claims. A targeted clinical audit of those specific facilities — reviewing care protocols, discharge planning practices, and physician-on-call coverage — is warranted regardless of the model's exact score.
 
@@ -525,7 +532,7 @@ The tier assignment applies `pd.cut` to `expected_cost_30d` using the population
 
 The root cause is the RTH score discretization described above. Because 359 residents share the same RTH score of 1.30%, their expected costs cluster tightly. The 50th percentile falls at $401 and the 75th percentile at $444 — a gap of only $43. `pd.cut` uses left-open intervals, so residents with a cost of exactly $401 fall into the Low bin (since Low captures the interval (−0.001, 401]), not Medium. Of the 163 residents whose expected cost is exactly $401, all are classified Low. The Medium band captures only the 53 residents with costs strictly above $401 and at or below $444.
 
-In practical terms, the Medium tier does not form a meaningfully distinct clinical group between High and Low. Facility staff should treat the dashboard as an effective two-category system in its current state: the 151 High-tier residents (top 25% by expected cost, all with costs above $444) are the primary action list; the remaining 461 residents form a monitoring pool regardless of whether they are formally labelled Medium or Low.
+In practical terms, the Medium tier does not form a meaningfully distinct clinical group between High and Low. Facility staff should treat the dashboard as an effective two-category system in its current state: the 151 High-tier residents (top 25% by expected cost, all with costs above $444) are the primary action list; the remaining 461 residents form a monitoring pool regardless of whether they are formally labeled Medium or Low.
 
 *Remediation path:* the same as for Limitation 1 — improving RTH discrimination would spread expected costs more continuously and restore a useful Medium tier. In the interim, the dashboard could be configured to display only High / Not High rather than three tiers, to avoid communicating a false precision in the Medium/Low distinction.
 
@@ -543,56 +550,28 @@ This is not a bug in the dominant-model logic — selecting drivers from the hig
 
 ## References
 
-### Insurance and actuarial
-
 [1] Werner, G., & Modlin, C. (2016). *Basic Ratemaking* (5th ed.). Casualty Actuarial Society. Defines loss ratio, pure premium, experience rating, adverse selection, and moral hazard in P&C insurance. https://www.casact.org/sites/default/files/old/studynotes_werner_modlin_ratemaking.pdf
-
-### Clinical — falls
 
 [2] Leipzig, R. M., Cumming, R. G., & Tinetti, M. E. (1999). Drugs and falls in older people: a systematic review and meta-analysis: I. Psychotropic drugs. *Journal of the American Geriatrics Society*, 47(1), 30–39. DOI: 10.1111/j.1532-5415.1999.tb01898.x. PMID: 9920227. Meta-analysis establishing the association between sedative/hypnotic, antidepressant, and neuroleptic drug classes and falls in older adults.
 
 [3] Woolcott, J. C., Richardson, K. J., Wiens, M. O., et al. (2009). Meta-analysis of the impact of 9 medication classes on falls in elderly persons. *Archives of Internal Medicine*, 169(21), 1952–1960. DOI: 10.1001/archinternmed.2009.357. PMID: 19933955. Bayesian meta-analysis confirming sedatives, antidepressants, and benzodiazepines as significant fall risk factors; underpins the psychotropic and opioid exposure features.
 
-### Clinical — return-to-hospital
-
 [4] Ouslander, J. G., Lamb, G., Perloe, M., et al. (2010). Potentially avoidable hospitalizations of nursing home residents: frequency, causes, and costs. *Journal of the American Geriatrics Society*, 58(4), 627–635. DOI: 10.1111/j.1532-5415.2010.02768.x. PMID: 20398146. Documents that the majority of SNF hospitalizations are potentially avoidable and identifies cardiopulmonary conditions and vital-sign instability as primary drivers of unplanned transfers.
-
-### Clinical — wounds and pressure injuries
 
 [5] European Pressure Ulcer Advisory Panel, National Pressure Injury Advisory Panel, & Pan Pacific Pressure Injury Alliance. (2019). *Prevention and Treatment of Pressure Ulcers/Injuries: Clinical Practice Guideline* (3rd ed.). EPUAP/NPIAP/PPPIA. Establishes immobility, malnutrition, cognitive impairment, advanced age, and long institutional stay as the principal risk factors for pressure injury development. https://npiap.com/page/2019Guideline
 
-### Clinical — comorbidity measurement
-
 [6] Quan, H., Li, B., Couris, C. M., et al. (2011). Updating and validating the Charlson comorbidity index and score for risk adjustment in hospital discharge abstracts using data from 6 countries. *American Journal of Epidemiology*, 173(6), 676–682. DOI: 10.1093/aje/kwq433. Updated ICD-10 coding rules and age-adjusted weights for the Charlson Comorbidity Index; the specification used in feature engineering.
 
-### Clinical — polypharmacy
-
 [7] Maher, R. L., Hanlon, J., & Hajjar, E. R. (2014). Clinical consequences of polypharmacy in elderly. *Expert Opinion on Drug Safety*, 13(1), 57–65. DOI: 10.1517/14740338.2013.827660. PMID: 24073682. Documents that CMS implemented a quality indicator targeting patients on ≥9 medications as a polypharmacy threshold in US nursing homes; source for the ≥9-drug flag.
-
-### Machine learning — algorithm
-
-[8] Chen, T., & Guestrin, C. (2016). XGBoost: a scalable tree boosting system. *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, pp. 785–794. DOI: 10.1145/2939672.2939785. arXiv: 1603.02754. Primary reference for the XGBoost gradient-boosted tree implementation used across all three models.
-
-### Machine learning — explainability
 
 [9] Lundberg, S. M., & Lee, S.-I. (2017). A unified approach to interpreting model predictions. *Advances in Neural Information Processing Systems* 30 (NeurIPS 2017), pp. 4766–4777. arXiv: 1705.07874. Introduces SHAP (SHapley Additive exPlanations) as a unified framework for feature attribution; theoretical foundation for all SHAP outputs in the evaluation and dashboard.
 
 [10] Lundberg, S. M., Erion, G., Chen, H., et al. (2020). From local explanations to global understanding with explainable AI for trees. *Nature Machine Intelligence*, 2, 56–67. DOI: 10.1038/s42256-019-0138-9. Introduces TreeSHAP, a polynomial-time algorithm for computing exact SHAP values for tree-based models including XGBoost; the implementation used by `shap.TreeExplainer`.
 
-### Machine learning — hyperparameter optimisation
-
-[11] Akiba, T., Sano, S., Yanase, T., Ohta, T., & Koyama, M. (2019). Optuna: a next-generation hyperparameter optimization framework. *Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, pp. 2623–2631. DOI: 10.1145/3292500.3330701. arXiv: 1907.10902. Describes the Optuna framework and its Tree-structured Parzen Estimator (TPE) sampler used for 30-trial Bayesian hyperparameter search per target model.
-
-### Machine learning — probability calibration
-
 [12] Niculescu-Mizil, A., & Caruana, R. (2005). Predicting good probabilities with supervised learning. *Proceedings of the 22nd International Conference on Machine Learning (ICML 2005)*, pp. 625–632. DOI: 10.1145/1102351.1102430. Empirically shows that maximum-margin methods (including boosted trees) produce systematically distorted probabilities and that isotonic regression outperforms Platt scaling for correcting non-linear miscalibration; motivates the choice of isotonic over sigmoid calibration.
-
-### Machine learning — evaluation metrics
 
 [13] Davis, J., & Goadrich, M. (2006). The relationship between precision-recall and ROC curves. *Proceedings of the 23rd International Conference on Machine Learning (ICML 2006)*, pp. 233–240. DOI: 10.1145/1143844.1143874. Proves that precision-recall curves are more informative than ROC curves for highly imbalanced datasets; justification for using PR-AUC as the primary tuning and evaluation metric.
 
 [14] Brier, G. W. (1950). Verification of forecasts expressed in terms of probability. *Monthly Weather Review*, 78(1), 1–3. DOI: 10.1175/1520-0493(1950)078<0001:VOFEIT>2.0.CO;2. Introduces the Brier score as a proper scoring rule for probabilistic forecasts; the calibration metric used throughout model evaluation and for the Brier Skill Score.
-
-### Machine learning — tabular data benchmarking
 
 [15] Grinsztajn, L., Oyallon, E., & Varoquaux, G. (2022). Why do tree-based models still outperform deep learning on tabular data? *Advances in Neural Information Processing Systems* 36 (NeurIPS 2022), Datasets and Benchmarks Track. arXiv: 2207.08815. https://arxiv.org/abs/2207.08815. Benchmarks tree-based models against deep learning architectures across 45 tabular datasets and finds that gradient-boosted trees remain state-of-the-art on medium-sized datasets (~10K samples); supports the choice of XGBoost over sequence models for this problem.
