@@ -13,6 +13,9 @@ dependencies:              # Packages to install via conda
   - matplotlib=3.10.9
   - scikit-learn=1.8.0
   - pyarrow=24.0.0
+  - nbconvert=7.17.1
+  - nbformat=5.10.4
+  - ipykernel=7.2.0
   - pip
   - pytest=9.0.3
   - pytest-cov=7.1.0
